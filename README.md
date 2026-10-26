@@ -8,8 +8,8 @@
 
 Sherpa reads a repository and walks a new engineer through it: an architecture map, answers, guided tours and first tasks. Every claim cites the exact file and line it comes from, and is checked before you see it.
 
-[![CI](https://github.com/SurajsinghBayas/sherpa-ai-mentor/actions/workflows/ci.yml/badge.svg)](https://github.com/SurajsinghBayas/sherpa-ai-mentor/actions/workflows/ci.yml)
-[![Desktop](https://github.com/SurajsinghBayas/sherpa-ai-mentor/actions/workflows/desktop.yml/badge.svg)](https://github.com/SurajsinghBayas/sherpa-ai-mentor/actions/workflows/desktop.yml)
+[![CI](https://github.com/raza-shaikh-ai/sherpa-ai-mentor/actions/workflows/ci.yml/badge.svg)](https://github.com/raza-shaikh-ai/sherpa-ai-mentor/actions/workflows/ci.yml)
+[![Desktop](https://github.com/raza-shaikh-ai/sherpa-ai-mentor/actions/workflows/desktop.yml/badge.svg)](https://github.com/raza-shaikh-ai/sherpa-ai-mentor/actions/workflows/desktop.yml)
 ![License](https://img.shields.io/badge/license-MIT-22c55e)
 ![Platforms](https://img.shields.io/badge/web%20·%20macOS%20·%20Windows%20·%20CLI-2f80ed)
 
@@ -81,7 +81,7 @@ On the demo repository, **98% of citations were valid, every answer had a verifi
 **Requirements:** Python 3.11+, Node 20+. Postgres and a model key are optional: without them Sherpa uses SQLite, keyword search and an offline answer composer.
 
 ```bash
-git clone https://github.com/SurajsinghBayas/sherpa-ai-mentor.git && cd sherpa-ai-mentor
+git clone https://github.com/raza-shaikh-ai/sherpa-ai-mentor.git && cd sherpa-ai-mentor
 cp .env.example .env                       # add model keys here (optional)
 
 pip install -r services/api/requirements.txt
@@ -99,7 +99,7 @@ Or run the whole stack, including Postgres with pgvector, in Docker: `docker com
 | | |
 |---|---|
 | **Web** | Run it on any Ubuntu server, such as AWS EC2: clone, add `.env`, start. See the [deployment guide](docs/deployment_guide.md) |
-| **macOS and Windows** | Installers (`.dmg`, `.exe`, `.msi`) are built by [GitHub Actions](https://github.com/SurajsinghBayas/sherpa-ai-mentor/actions/workflows/desktop.yml) on every change. Build locally with `make desktop-build`. See [apps/desktop](apps/desktop/README.md) |
+| **macOS and Windows** | Installers (`.dmg`, `.exe`, `.msi`) are built by [GitHub Actions](https://github.com/raza-shaikh-ai/sherpa-ai-mentor/actions/workflows/desktop.yml) on every change. Build locally with `make desktop-build`. See [apps/desktop](apps/desktop/README.md) |
 | **CLI** | `curl -fsSL <your-server>/cli/sherpa.py -o sherpa`, then `sherpa login`, `sherpa upload ./project`, `sherpa ask`. See [cli](cli/README.md) |
 
 ## Security and privacy
@@ -178,7 +178,7 @@ Built with help from Claude Code (Anthropic). At runtime Sherpa uses models on A
 
 ## License
 
-[MIT](LICENSE) © 2026 Suraj Bayas
+[MIT](LICENSE) © 2026 Raza Shaikh
 
 run command :
 cd services/api

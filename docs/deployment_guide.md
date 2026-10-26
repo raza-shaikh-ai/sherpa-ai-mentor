@@ -9,11 +9,10 @@ sudo apt update && sudo apt install -y git python3-venv python3-pip
 ```
 
 ## 2. Clone
-
 The repository is private, so put your GitHub username and a token in the URL. Use a fine-grained token with read-only **Contents** access to this repository.
 
 ```bash
-git clone https://YOUR_GITHUB_USERNAME:YOUR_TOKEN@github.com/SurajsinghBayas/sherpa-ai-mentor.git
+git clone https://YOUR_GITHUB_USERNAME:YOUR_TOKEN@github.com/raza-shaikh-ai/sherpa-ai-mentor.git
 cd sherpa-ai-mentor
 ```
 
