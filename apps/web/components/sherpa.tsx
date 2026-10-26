@@ -72,9 +72,16 @@ function Figure({ pose = "happy", size = 64, animated = true, decorative = false
   // both the error event and the hydration check can report one failure: count it once per stage
   const failed = (at: "gif" | "still") => setStage((s) => (s !== at ? s : at === "gif" ? "still" : "none"));
   useEffect(() => {
-    // an image that failed before hydration never fires onError
+    // In Safari, el.complete may be true while naturalWidth is still 0 during async decoding.
+    // Use el.decode() to avoid false-positive failure while Safari decodes the image.
     const el = img.current;
-    if (stage !== "none" && el?.complete && el.naturalWidth === 0) failed(stage);
+    if (stage !== "none" && el?.complete && el.naturalWidth === 0) {
+      if (typeof el.decode === "function") {
+        el.decode().catch(() => failed(stage));
+      } else {
+        failed(stage);
+      }
+    }
   }, [stage]);
 
   const box = cn("inline-block shrink-0 select-none", className);
@@ -96,18 +103,31 @@ function Figure({ pose = "happy", size = 64, animated = true, decorative = false
   );
 }
 
-/** Sherpa's head: the logo mark and the chat avatar. */
+/** Sherpa's head: the logo mark and the chat avatar. Rendered as inline SVG for zero-latency paint in all browsers. */
 export function SherpaMark({ size = 24, className }: { size?: number; className?: string }) {
   return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src="/mascot/head.svg"
-      alt=""
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
       width={size}
       height={Math.round((size * 30) / 36)}
-      draggable={false}
+      viewBox="14 7 36 30"
+      shapeRendering="crispEdges"
       className={cn("pixelated shrink-0 select-none", className)}
-    />
+      aria-hidden="true"
+    >
+      <rect x="19" y="34" width="26" height="4" fill="#2F80ED" />
+      <rect x="15" y="14" width="34" height="21" fill="#17223D" />
+      <rect x="18" y="10" width="28" height="26" fill="#17223D" />
+      <rect x="21" y="8" width="22" height="4" fill="#17223D" />
+      <rect x="18" y="13" width="28" height="20" fill="#FFF5E7" />
+      <rect x="21" y="10" width="22" height="24" fill="#FFF5E7" />
+      <rect x="18" y="19" width="28" height="10" fill="#2F80ED" />
+      <rect x="20" y="20" width="24" height="7" fill="#A9D5FF" />
+      <rect x="24" y="22" width="4" height="4" fill="#17223D" />
+      <rect x="36" y="22" width="4" height="4" fill="#17223D" />
+      <rect x="29" y="28" width="7" height="2" fill="#101827" />
+      <rect x="31" y="30" width="3" height="1" fill="#F28BA8" />
+    </svg>
   );
 }
 

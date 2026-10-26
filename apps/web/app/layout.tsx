@@ -33,7 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap"
           rel="stylesheet"
         />
-        <link rel="preload" as="image" href="/mascot/head.svg" />
+        <link rel="preload" as="image" type="image/svg+xml" href="/mascot/head.svg" />
         {/* must run before the app's scripts read the API address */}
         {/* eslint-disable-next-line @next/next/no-sync-scripts */}
         <script src="/runtime-config.js" />
