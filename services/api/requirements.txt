@@ -22,4 +22,3 @@ slowapi==0.1.*
 limits==3.*
 pytest==8.*
 ruff==0.6.*
-
