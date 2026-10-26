@@ -179,3 +179,11 @@ Built with help from Claude Code (Anthropic). At runtime Sherpa uses models on A
 ## License
 
 [MIT](LICENSE) © 2026 Suraj Bayas
+
+run command :
+cd services/api
+uvicorn app.main:app --reload --port 8000
+
+
+cd apps/web && npm run dev
+

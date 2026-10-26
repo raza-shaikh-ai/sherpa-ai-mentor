@@ -24,7 +24,7 @@ def load_local_env() -> None:
             key, _, value = stripped.partition("=")
             key = key.strip()
             value = value.strip().strip('"').strip("'")
-            if key and key not in os.environ:
+            if key and (key not in os.environ or os.environ[key] in ("your-api-key-here", "<your-key>", "")):
                 os.environ[key] = value
         return
 

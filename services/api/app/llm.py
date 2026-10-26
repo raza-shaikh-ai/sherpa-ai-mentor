@@ -62,7 +62,8 @@ class LLMClient:
     def available(self) -> bool:
         p = self.provider
         if p == "openai":
-            return bool(os.getenv("OPENAI_API_KEY"))
+            key = os.getenv("OPENAI_API_KEY") or os.getenv("LLM_API_KEY")
+            return bool(key and key != "your-api-key-here")
         if p == "openrouter":
             return bool(os.getenv("OPENROUTER_API_KEY") or os.getenv("OPENAI_API_KEY"))
         if p == "anthropic":
@@ -129,9 +130,11 @@ class LLMClient:
                 key = api_key or os.getenv("GEMINI_API_KEY")
                 base = base_url or GEMINI_OPENAI_BASE
             else:
-                key = api_key or os.getenv("OPENAI_API_KEY") or os.getenv("OPENROUTER_API_KEY")
+                key = api_key or os.getenv("LLM_API_KEY") or os.getenv("OPENAI_API_KEY") or os.getenv("OPENROUTER_API_KEY")
+                if key in ("your-api-key-here", "<your-key>"):
+                    key = os.getenv("LLM_API_KEY") or ""
                 # a BYOK key must never be sent to the server's own gateway
-                base = base_url or (None if byok else os.getenv("OPENAI_BASE_URL"))
+                base = base_url or (None if byok else (os.getenv("LLM_BASE_URL") or os.getenv("OPENAI_BASE_URL")))
                 if prov == "openrouter" and not base:
                     base = "https://openrouter.ai/api/v1"
             if not key:
