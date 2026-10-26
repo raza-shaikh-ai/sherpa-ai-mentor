@@ -22,4 +22,4 @@ slowapi==0.1.*
 limits==3.*
 pytest==8.*
 ruff==0.6.*
-gradio>=4.44.1  # HF Spaces SDK requirement
+
