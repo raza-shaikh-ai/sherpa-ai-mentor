@@ -1,0 +1,42 @@
+name: deploy-hf
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "services/api/**"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Sync services/api to HF Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          git config --global user.email "razavcf@gmail.com"
+          git config --global user.name "Raza Shaikh"
+
+          # Clone the HF Space
+          git clone "https://Razashaikh9921:${HF_TOKEN}@huggingface.co/spaces/Razashaikh9921/sherpa-ai-mentor" /tmp/hf_space
+
+          # Sync services/api into HF Space root (exclude pycache/env)
+          rsync -av --delete \
+            --exclude='.git' \
+            --exclude='__pycache__' \
+            --exclude='*.pyc' \
+            --exclude='*.pyo' \
+            --exclude='.env' \
+            --exclude='data/' \
+            --exclude='*.db' \
+            services/api/ /tmp/hf_space/
+
+          cd /tmp/hf_space
+
+          git add -A
+          # Only commit+push if there are actual changes
+          git diff --staged --quiet && echo "Nothing to push." && exit 0
+          git commit -m "sync api"
+          git push "https://Razashaikh9921:${HF_TOKEN}@huggingface.co/spaces/Razashaikh9921/sherpa-ai-mentor" main
