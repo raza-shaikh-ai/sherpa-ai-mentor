@@ -41,6 +41,7 @@ const securityHeaders = [
 // SHERPA_DESKTOP=1: a static export (out/) for the Tauri app in apps/desktop. Run it through
 // `npm run build:desktop`, which builds in a separate copy so a running `next dev` is never disturbed.
 const desktop = process.env.SHERPA_DESKTOP === "1";
+const backend = (process.env.SHERPA_API_URL || process.env.NEXT_PUBLIC_API_URL || "http://3.110.131.150:8000").replace(/\/+$/, "");
 
 module.exports = desktop
   ? {
@@ -54,4 +55,25 @@ module.exports = desktop
       async headers() {
         return [{ source: "/:path*", headers: securityHeaders }];
       },
+      async rewrites() {
+        return [
+          {
+            source: "/api/:path*",
+            destination: `${backend}/api/:path*`,
+          },
+          {
+            source: "/health",
+            destination: `${backend}/health`,
+          },
+          {
+            source: "/ready",
+            destination: `${backend}/ready`,
+          },
+          {
+            source: "/cli/:path*",
+            destination: `${backend}/cli/:path*`,
+          },
+        ];
+      },
     };
+
