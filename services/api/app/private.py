@@ -152,12 +152,23 @@ def purge_orphans() -> None:
     end([i for i in ids if get(i) is None], "server restarted")
 
 
-def start_sweeper(interval: float = 60) -> threading.Event:
+def sweep_interval() -> float:
+    """How often to check for expired private repos.
+
+    A query every minute pins a scale-to-zero Postgres (e.g. Neon's free tier) awake around
+    the clock, which exhausts its monthly compute quota. The floor is 60 s, the default
+    600 s — the worst case is that an expired snapshot is freed one interval late.
+    """
+    return max(60.0, float(settings.private_sweep_seconds))
+
+
+def start_sweeper(interval: float | None = None) -> threading.Event:
     """Background thread that wipes expired private repos; set the returned event to stop it."""
+    every = sweep_interval() if interval is None else max(1.0, float(interval))
     stop = threading.Event()
 
     def loop():
-        while not stop.wait(interval):
+        while not stop.wait(every):
             try:
                 purge_expired()
             except Exception:  # noqa: BLE001 — a DB blip must not kill the sweeper

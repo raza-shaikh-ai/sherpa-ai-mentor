@@ -118,6 +118,9 @@ class Settings(BaseSettings):
     # private mode: code kept in server memory only, wiped after this long
     private_ttl_hours: float = 8
     max_private_repos: int = 20  # per server, all users (each holds its code + vectors in RAM)
+    # How often to check for expired private repos. Queries more often than every 5 minutes
+    # keep a scale-to-zero Postgres (Neon free tier) awake 24/7 and burn its compute quota.
+    private_sweep_seconds: float = 600
 
     # housekeeping: wipe repo/index data every AUTO_CLEAR_DAYS days so a small free-tier
     # database doesn't fill up. Accounts, keys, endpoints and usage counters are kept.

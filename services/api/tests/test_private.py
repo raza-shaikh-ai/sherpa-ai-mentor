@@ -225,3 +225,14 @@ def test_token_without_repo_access_gets_a_clear_message(monkeypatch):
     monkeypatch.setattr(ingest.subprocess, "run", fake_run)
     with pytest.raises(ingest.IngestError, match="can't read this repository"):
         ingest.fetch_source("https://github.com/acme/x", None, "", token="ghp_x")
+
+
+def test_sweep_interval_defaults_to_ten_minutes_and_has_a_one_minute_floor(monkeypatch):
+    """The sweeper's own query must not keep a scale-to-zero database awake every minute."""
+    from app import private
+    from app.config import settings
+
+    monkeypatch.setattr(settings, "private_sweep_seconds", 600)
+    assert private.sweep_interval() == 600
+    monkeypatch.setattr(settings, "private_sweep_seconds", 5)
+    assert private.sweep_interval() == 60

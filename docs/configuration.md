@@ -27,6 +27,7 @@ All settings are environment variables (or a `.env` file in the repo root); [`.e
 | `MAX_UPLOAD_MB` / `MAX_UPLOAD_SOURCE_MB` | 100 / 50 | Uploaded ZIP size · text kept after filtering |
 | `LOG_LEVEL` | `INFO` | Fallbacks log at `WARNING` |
 | `PRIVATE_TTL_HOURS` / `MAX_PRIVATE_REPOS` | 8 / 20 | Private mode: how long code stays in memory · how many private repos one server holds |
+| `PRIVATE_SWEEP_SECONDS` | 600 | How often expired private repos are checked; keep above 300 so a scale-to-zero database can idle |
 | `AUTO_CLEAR_ENABLED` / `AUTO_CLEAR_DAYS` | `true` / 10 | Housekeeping: wipe indexed repo data (repos, files, chunks, artifacts, finished uploads, vectors) every N days; accounts and settings are kept |
 | `POLLY_ACCESS_KEY_ID` / `POLLY_SECRET_ACCESS_KEY` / `POLLY_REGION` | — / — / `us-east-1` | Amazon Polly voice; blank → the browser's built-in voice |
 | `POLLY_VOICE` / `POLLY_ENGINE` | `Matthew` / `neural` | |
