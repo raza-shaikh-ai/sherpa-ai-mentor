@@ -32,6 +32,22 @@ def no_real_transcribe(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def no_auto_clear(monkeypatch):
+    """Housekeeping would write a marker and could wipe data on every app start; a test
+    that exercises it opts back in with monkeypatch."""
+    from app.config import settings
+    monkeypatch.setattr(settings, "auto_clear_enabled", False)
+
+
+@pytest.fixture(autouse=True)
+def no_db_failover(monkeypatch):
+    """A configured backup URL would make app startup ping the real databases; the tests
+    use their own SQLite engine instead."""
+    from app import db as dbmod
+    monkeypatch.setattr(dbmod, "_backup_engine", None)
+
+
+@pytest.fixture(autouse=True)
 def fresh_rate_limits():
     """Every test starts with empty rate-limit counters (they are per process)."""
     from app.guards import limiter

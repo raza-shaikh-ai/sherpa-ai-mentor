@@ -13,6 +13,7 @@ All settings are environment variables (or a `.env` file in the repo root); [`.e
 | `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASSWORD` / `MAIL_FROM_NAME` | — / 587 / — / — / `Sherpa AI` | Email sign-in codes (Gmail app password works) |
 | `GOOGLE_CLIENT_ID` | — | Google sign-in (OAuth client, Web application); button hidden when blank |
 | `DATABASE_URL` | SQLite | AWS RDS Postgres in production (see `docs/rds_setup.md`); holds accounts, repos, chunks and embeddings |
+| `DATABASE_URL_BACKUP` | — | Fallback Postgres used when `DATABASE_URL` is unreachable (checked at startup and on a dropped connection). Data written on the backup is not copied back |
 | `AWS_BEARER_TOKEN_BEDROCK` | — | Bedrock API key for embeddings; blank → TF-IDF search |
 | `EMBEDDING_MODEL` / `EMBEDDING_REGION` | `amazon.titan-embed-text-v2:0` / `ap-south-1` | Titan v2 runs next to RDS and the LLM. `amazon.nova-2-multimodal-embeddings-v1:0` works too but only in `us-east-1`. After changing the model, run `make reembed` |
 | `AWS_DEFAULT_REGION` | `us-east-1` | Polly's region when `POLLY_REGION` is blank, and embeddings' when `EMBEDDING_REGION` is blank |
@@ -26,5 +27,6 @@ All settings are environment variables (or a `.env` file in the repo root); [`.e
 | `MAX_UPLOAD_MB` / `MAX_UPLOAD_SOURCE_MB` | 100 / 50 | Uploaded ZIP size · text kept after filtering |
 | `LOG_LEVEL` | `INFO` | Fallbacks log at `WARNING` |
 | `PRIVATE_TTL_HOURS` / `MAX_PRIVATE_REPOS` | 8 / 20 | Private mode: how long code stays in memory · how many private repos one server holds |
+| `AUTO_CLEAR_ENABLED` / `AUTO_CLEAR_DAYS` | `true` / 10 | Housekeeping: wipe indexed repo data (repos, files, chunks, artifacts, finished uploads, vectors) every N days; accounts and settings are kept |
 | `POLLY_ACCESS_KEY_ID` / `POLLY_SECRET_ACCESS_KEY` / `POLLY_REGION` | — / — / `us-east-1` | Amazon Polly voice; blank → the browser's built-in voice |
 | `POLLY_VOICE` / `POLLY_ENGINE` | `Matthew` / `neural` | |

@@ -10,7 +10,7 @@ any table that is missing even though the migration history says it was applied.
 import logging
 import os
 
-from sqlalchemy import create_engine, event, inspect
+from sqlalchemy import create_engine, event, inspect, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import DBAPIError, OperationalError, ProgrammingError
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
@@ -43,8 +43,8 @@ def _database_url() -> str:
     return f"sqlite:///{os.path.join(settings.data_dir, 'sherpa.db')}"
 
 
-def _make_engine():
-    url = _database_url()
+def _make_engine(url: str | None = None):
+    url = url or _database_url()
     if url.startswith("sqlite"):
         return create_engine(url, connect_args={"check_same_thread": False})
     # Remote Postgres (RDS): require SSL unless the URL says otherwise; recycle pooled connections.
@@ -54,8 +54,63 @@ def _make_engine():
     return create_engine(url, pool_pre_ping=True, pool_recycle=300)
 
 
-engine = _make_engine()
+def _backup_url() -> str:
+    url = (settings.database_url_backup or "").strip()
+    return "" if url == (settings.database_url or "").strip() else url
+
+
+_primary_engine = _make_engine()
+_backup_engine = _make_engine(_backup_url()) if _backup_url() else None
+engine = _primary_engine
 SessionLocal = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
+_active_db = "primary"
+
+
+def active_database() -> str:
+    """`primary` or `backup` — which DATABASE_URL requests are currently using."""
+    return _active_db
+
+
+def _ping(candidate: Engine, name: str) -> bool:
+    try:
+        with candidate.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        return True
+    except Exception as e:  # noqa: BLE001 — any failure means "not usable right now"
+        log.warning("db: %s database unreachable (%s)", name, type(e).__name__)
+        return False
+
+
+def _use(target: Engine, name: str) -> None:
+    global engine, SessionLocal, _active_db
+    if engine is not target:
+        engine = target
+        SessionLocal = sessionmaker(bind=target, autoflush=False, expire_on_commit=False)
+    _active_db = name
+    log.warning("db: now using the %s database", name)
+
+
+def choose_database() -> str:
+    """At startup: keep the primary when it answers, otherwise fall back to the backup."""
+    if _backup_engine is not None and not _ping(_primary_engine, "primary"):
+        if _ping(_backup_engine, "backup"):
+            _use(_backup_engine, "backup")
+    return _active_db
+
+
+@event.listens_for(_primary_engine, "handle_error")
+def _fail_over_on_disconnect(ctx):
+    """The primary dropped a connection: switch to the backup if it is usable.
+
+    Only real disconnects trigger this (a syntax/constraint error must not); the request
+    that hit the failure still errors, but every request after it uses the backup. We
+    don't auto-switch back — a restart re-tries the primary, which keeps the check free
+    and lets a free-tier database scale to zero between requests.
+    """
+    if _backup_engine is None or _active_db != "primary" or not ctx.is_disconnect:
+        return
+    if _ping(_backup_engine, "backup"):
+        _use(_backup_engine, "backup")
 
 
 API_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

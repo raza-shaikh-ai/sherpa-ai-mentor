@@ -28,8 +28,10 @@ from .agents.stack import build_stack
 from .agents.tasks import suggest_starter_tasks
 from .agents.tour import build_tour
 from . import private
+from . import db as dbmod
+from .autoclear import start_scheduler as start_auto_clear
 from .config import production_problems, production_warnings, settings
-from .db import engine as _engine, get_session, init_db
+from .db import get_session, init_db
 from .guards import check_branch, check_outbound_url, enforce, normalize_repo_url
 from .dbmodels import CustomEndpoint, ProviderKey, QuizAttempt, Repo, RepoArtifact, UsageCounter
 from .embeddings import embedder
@@ -62,6 +64,7 @@ async def lifespan(_: FastAPI):
         raise RuntimeError("unsafe production config: " + "; ".join(problems))
     for w in production_warnings(settings):
         log.warning("startup: %s", w)
+    dbmod.choose_database()  # primary when it answers, else DATABASE_URL_BACKUP
     init_db()
     log.info("startup: env=%s db=%s llm_provider=%s model=%s fallbacks=%s llm_available=%s "
              "embeddings=%s local_ingest=%s", settings.environment,
@@ -73,7 +76,16 @@ async def lifespan(_: FastAPI):
         log.warning("startup: no usable LLM credentials; agents will use offline fallbacks")
     private.purge_orphans()  # private code lived in the previous process's memory only
     stop_sweeper = private.start_sweeper()
+
+    def _forget_stores(repo_ids: list[str]) -> None:
+        # the 10-day housekeeping wipe removed these rows; drop their in-memory snapshots too
+        with _stores_lock:
+            for repo_id in repo_ids:
+                _stores.pop(repo_id, None)
+
+    stop_auto_clear = start_auto_clear(on_cleared=_forget_stores)
     yield
+    stop_auto_clear.set()
     stop_sweeper.set()
 
 
@@ -439,7 +451,8 @@ def _repo_summary(s: RepoStore, db: Session) -> dict:
 @app.get("/health")
 def health():
     return {"ok": True, "service": settings.app_name,
-            "db": "postgres" if settings.database_url else "sqlite", "auth": True,
+            "db": "postgres" if settings.database_url else "sqlite",
+            "db_active": dbmod.active_database(), "auth": True,
             "llm": {"provider": llm.provider, "model": llm.model,
                     "fallbacks": llm.fallback_models, "available": llm.available},
             "embeddings": {"model": embedder.model,
@@ -472,7 +485,7 @@ def download_cli(request: Request):
 def ready():
     """Readiness for the load balancer: 503 until the database answers."""
     try:
-        with _engine.connect() as conn:
+        with dbmod.engine.connect() as conn:
             conn.execute(text("SELECT 1"))
     except Exception as e:  # noqa: BLE001
         log.error("ready: database unreachable: %s", type(e).__name__)

@@ -61,6 +61,9 @@ class Settings(BaseSettings):
     # postgresql+psycopg://postgres:pass@db.xxxx.ap-south-1.rds.amazonaws.com:5432/postgres?sslmode=require
     # Empty/blank falls back to local SQLite so `make api` works with zero setup.
     database_url: str = ""
+    # used only when DATABASE_URL's server stops answering (a suspended free-tier project,
+    # a failover replica, …). Rows written while on the backup are not copied back.
+    database_url_backup: str = ""
     encryption_key: str = ""  # Fernet key; generated from jwt_secret_key if blank
 
     # embeddings (Amazon Bedrock) — stored in Postgres/pgvector; blank token → TF-IDF only.
@@ -115,6 +118,11 @@ class Settings(BaseSettings):
     # private mode: code kept in server memory only, wiped after this long
     private_ttl_hours: float = 8
     max_private_repos: int = 20  # per server, all users (each holds its code + vectors in RAM)
+
+    # housekeeping: wipe repo/index data every AUTO_CLEAR_DAYS days so a small free-tier
+    # database doesn't fill up. Accounts, keys, endpoints and usage counters are kept.
+    auto_clear_enabled: bool = True
+    auto_clear_days: float = 10
 
     # development | production — production refuses to start with unsafe settings
     environment: str = "development"
